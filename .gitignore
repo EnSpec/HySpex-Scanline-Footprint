@@ -1,5 +1,4 @@
-.secret/
-*.txt
 *.shp
 *.dbf
 *.shx
+key.txt
