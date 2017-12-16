@@ -1,5 +1,5 @@
 Usage:
-python GPSParse.py input_gps.txt output.shp view_angle
+python GPSParse.py input_gps.txt output.shp [view_angle elevation]
 
 Install:
 pip install requests
