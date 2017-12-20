@@ -1,13 +1,49 @@
 #!/usr/bin/env python3
 import numpy as np
-import LonLatMath as llmath
 import requests
-import SHPParse
+import shapefile
 
-KEY = open("key.txt",'r').read().strip()
+EARTH_RADIUS = 6.3710088e6 #meters
 
-def getElevation(coord):
+def toPoly(coords,elev,fname):
+    """Save a lat,lon coordinate dictionary to a shapefile"""
+    polyw = shapefile.Writer(shapefile.POLYGON)
+    polyw.field('idx','N',10)
+    bounds = [list(map(lambda c:[c['lon'],c['lat'],elev],coords))]
+    polyw.poly(parts=bounds)
+    polyw.record('0','Scanline Bounds')
+    polyw.save(fname)
+
+def atDistAndBearing(start,dist,bearing):
+    """Find the destination from coordinates start travelling 
+    `dist` meters at bearing `bearing`
+    """
+    lat0 = start['lat']
+    lon0 = start['lon']
+    latr0 = np.deg2rad(lat0)
+    lonr0 = np.deg2rad(lon0)
+    bearingr = np.deg2rad(bearing)
+    d_div_R = dist/EARTH_RADIUS
+    latrf = np.arcsin(np.sin(latr0)*np.cos(d_div_R)+
+                np.cos(latr0)*np.sin(d_div_R)*np.cos(bearingr))
+
+    lonrf = np.arctan2(np.sin(bearingr)*np.sin(d_div_R)*np.cos(latr0),
+                np.cos(d_div_R)-np.sin(latr0)*np.sin(latrf)) + lonr0
+
+    latf = np.rad2deg(latrf)
+    lonf = ((np.rad2deg(lonrf)+540)%360) - 180
+    return {'lat':latf,'lon':lonf}
+
+def getGoogleElevation(coord):
     print("Using Google API to get elevation.")
+    try:
+        KEY = open("key.txt",'r').read().strip()
+    except FileNotFoundError:
+        print("Google API key not found. Please enter an API key:")
+        KEY = input()
+        with open("key.txt",'w') as f:
+            f.write(KEY)
+
     API_URL = 'https://maps.googleapis.com/maps/api/elevation/json' 
     params = {'key':KEY,'locations':'{lat},{lon}'.format(**coord)}
     r = requests.get(API_URL,params=params)
@@ -16,7 +52,7 @@ def getElevation(coord):
 
 def findGroundLocation(coord,alt,pitch,yaw):
     dY = alt*np.tan(np.deg2rad(pitch))
-    location = llmath.atDistAndBearing(coord,dY,yaw)
+    location = atDistAndBearing(coord,dY,yaw)
     return location
 
 def getScanEdges(coord,alt,roll,pitch,yaw,view_angl=17):
@@ -25,8 +61,8 @@ def getScanEdges(coord,alt,roll,pitch,yaw,view_angl=17):
     thetaR = np.deg2rad(view_angl/2-roll)
     dXl = alt*np.tan(thetaL)
     dXr = alt*np.tan(thetaR)
-    lBound = llmath.atDistAndBearing(ground_pos,dXl,yaw-90)
-    rBound = llmath.atDistAndBearing(ground_pos,dXr,yaw+90)
+    lBound = atDistAndBearing(ground_pos,dXl,yaw-90)
+    rBound = atDistAndBearing(ground_pos,dXr,yaw+90)
     return lBound,rBound
 
 
@@ -36,7 +72,7 @@ def processGPS(gps_file,out_shapefile='out',view_angl=17,elevation =None):
     lSide = []
     rSide = []
     if elevation is None:
-        elevation = getElevation({'lat':data[0,2],'lon':data[0,1]})
+        elevation = getGoogleElevation({'lat':data[0,2],'lon':data[0,1]})
     else:
         elevation = float(elevation)
     for i,(lon,lat,alt,roll,pitch,yaw) in enumerate(data[:,1:-1]):
@@ -45,7 +81,7 @@ def processGPS(gps_file,out_shapefile='out',view_angl=17,elevation =None):
         lSide.append(lBound)
         rSide.append(rBound)
 
-    SHPParse.toPoly(lSide+rSide[::-1],elevation,out_shapefile)
+    toPoly(lSide+rSide[::-1],elevation,out_shapefile)
 
 
 #pip install requests

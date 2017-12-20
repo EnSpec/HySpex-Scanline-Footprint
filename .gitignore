@@ -1,4 +1,6 @@
+__pycache__/
 *.shp
 *.dbf
 *.shx
 key.txt
+*_raw.txt
