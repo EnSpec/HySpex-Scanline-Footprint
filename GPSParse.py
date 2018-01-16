@@ -87,8 +87,32 @@ def processGPS(gps_file,out_shapefile='out',view_angl=17,elevation =None):
 #pip install requests
 #pip install pyshp
 #python GPSParse.py input_gps.txt output.shp [optional: view_angle elevation]
+IN_HELP="""
+input file of tab-separated gps coordinates. 
+Format: lon lat alt roll pitch yaw
+"""
+GOOGL_HELP="""
+Number of elevation points to request from the Google API (default 1). 
+Elevations are interpolated evenly throughout the scan area.
+Note: Requires a google API key.
+"""
+ELEV_HELP="""
+Use a single elevation value (in meters) for the whole reading instead of
+using the google elevation api.
+"""
+EFILE_HELP="""
+Read a list of elevations from a file instead of using the google elevation api.
+Elevations are interpolated to the closest given value.
+Format: lon lat elev.
+"""
+
 if __name__ =='__main__':
-    import sys
+    import argparse
+    parser = argparse.ArgumentParser(description=
+            "Convert gps text file to shapefile")
+    parser.add_argument("gps_file",help=IN_HELP)
+    parser.add_argument("--google-elev-points",help=GOOGL_HELP)    
+    parser.add_argument("--elev")
     #more command line:
     #give elevation
     #coarse view
