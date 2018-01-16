@@ -1,11 +1,18 @@
-Install:
-pip install numpy requests pyshp
+GPSParse.py
+Convert tab separated list of GPS coordinates to shapefile
 
-Usage: GPSParse.py [-h] [-o OUT] [-v FOV] [-g NPOINTS] [-k KEY_FILE] [-e ELEV]
+Installation:
+1. Install the necessary python packages
+	$ pip install numpy requests pyshp
+2. Configure google API key
+	1. Get an API key via https://developers.google.com/maps/documentation/elevation/start#get-a-key
+	2. Create a local file with your API key on a single line.
+	   GPSParse.py will look at ./key.txt for an API key by default. To
+	   specify a different key file, use the --key-file argument.
+
+Usage: python GPSParse.py [-h] [-o OUT] [-v FOV] [-g NPOINTS] [-k KEY_FILE] [-e ELEV]
                    [-s] [-l LOG_FILE]
                    gps_file
-
-Convert gps log textfile to shapefile
 
 positional arguments:
   gps_file              Input file of tab-separated gps coordinates. File
