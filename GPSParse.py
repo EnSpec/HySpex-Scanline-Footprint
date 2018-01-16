@@ -2,6 +2,8 @@
 import numpy as np
 import requests
 import shapefile
+import os
+import sys
 
 EARTH_RADIUS = 6.3710088e6 #meters
 
@@ -34,15 +36,14 @@ def atDistAndBearing(start,dist,bearing):
     lonf = ((np.rad2deg(lonrf)+540)%360) - 180
     return {'lat':latf,'lon':lonf}
 
-def getGoogleElevation(coord):
+def getGoogleElevation(coord,keyfile="key.txt"):
     print("Using Google API to get elevation.")
     try:
-        KEY = open("key.txt",'r').read().strip()
+        KEY = open(keyfile,'r').read().strip()
     except FileNotFoundError:
-        print("Google API key not found. Please enter an API key:")
-        KEY = input()
-        with open("key.txt",'w') as f:
-            f.write(KEY)
+        print("Google API key not found. Use the --key-file argument to"
+              " specify the location of your api key (default key.txt)")
+        exit(1)
 
     API_URL = 'https://maps.googleapis.com/maps/api/elevation/json' 
     params = {'key':KEY,'locations':'{lat},{lon}'.format(**coord)}
@@ -64,7 +65,6 @@ def getScanEdges(coord,alt,roll,pitch,yaw,view_angl=17):
     lBound = atDistAndBearing(ground_pos,dXl,yaw-90)
     rBound = atDistAndBearing(ground_pos,dXr,yaw+90)
     return lBound,rBound
-
 
 def processGPS(gps_file,out_shapefile='out',view_angl=17,elevation =None):
     view_angl = float(view_angl)
@@ -96,14 +96,18 @@ Number of elevation points to request from the Google API (default 1).
 Elevations are interpolated evenly throughout the scan area.
 Note: Requires a google API key.
 """
+KEY_HELP="""
+Location of file containing Google API key to use for Google Maps elevation 
+requests. 
+"""
 ELEV_HELP="""
 Use a single elevation value (in meters) for the whole reading instead of
 using the google elevation api.
 """
 EFILE_HELP="""
-Read a list of elevations from a file instead of using the google elevation api.
+Read a list of elevations from a file instead of using the google elevation API.
 Elevations are interpolated to the closest given value.
-Format: lon lat elev.
+Format: lon lat elev
 """
 
 if __name__ =='__main__':
@@ -112,7 +116,9 @@ if __name__ =='__main__':
             "Convert gps text file to shapefile")
     parser.add_argument("gps_file",help=IN_HELP)
     parser.add_argument("--google-elev-points",help=GOOGL_HELP)    
-    parser.add_argument("--elev")
+    parser.add_argument("--key-file",help=KEY_HELP)    
+    parser.add_argument("--elev",help=ELEV_HELP)
+    parser.add_argument("--elev-file",help=EFILE_HELP)
     #more command line:
     #give elevation
     #coarse view
