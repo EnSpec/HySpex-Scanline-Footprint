@@ -49,6 +49,6 @@ Usage
 Example Input and Output
 ------------------------
 
-example_gps.txt is an example input file
+example_gps.txt is an example input file. This file is an output from the HySpex NAV software.
 
 example.shp, example.dbf, example.shx are outputs
