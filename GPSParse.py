@@ -4,7 +4,7 @@ import requests
 import shapefile
 import os
 import sys
-from matplotlib import pyplot as plt
+#from matplotlib import pyplot as plt
 
 EARTH_RADIUS = 6.3710088e6 #meters
 
