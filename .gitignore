@@ -3,5 +3,8 @@ __pycache__/
 *.dbf
 *.shx
 *.txt
-~README.txt
+!example.shp
+!example.dbf
+!example.shx
+!example_gps.txt
 *_raw.txt
